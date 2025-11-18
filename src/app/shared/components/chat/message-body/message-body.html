@@ -1,0 +1,117 @@
+<div [class]="containerClass()">
+  <!-- Backdrop overlay to close actions -->
+  @if (showActions()) {
+  <div class="fixed inset-0 z-5" (click)="hideActions()" (touchstart)="hideActions()"></div>
+  }
+
+  <div [class]="contentWrapperClass()">
+    <div [class]="headerClass()">
+      <div [class]="messageClass()">
+        <!-- File Content -->
+        @if (isFileMessage()) {
+        <div
+          class="mb-1 relative"
+          (mousedown)="onPressStart($event)"
+          (mouseup)="onPressEnd()"
+          (mouseleave)="onPressCancel()"
+          (touchstart)="onPressStart($event)"
+          (touchend)="onPressEnd()"
+          (touchcancel)="onPressCancel()"
+        >
+          <!-- Delete button - only visible on long press for current user -->
+          @if (isCurrentUser() && showActions()) {
+          <hlm-alert-dialog>
+            <button
+              brnAlertDialogTrigger
+              class="absolute -top-1 -right-1 p-1.5 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-full shadow-lg transition-all z-10 animate-in fade-in zoom-in duration-200"
+              title="Delete file"
+            >
+              <ng-icon name="lucideTrash2" size="14" />
+            </button>
+            <hlm-alert-dialog-content *brnAlertDialogContent="let ctx">
+              <hlm-alert-dialog-header>
+                <h2 hlmAlertDialogTitle>Delete Message</h2>
+                <p hlmAlertDialogDescription>
+                  Are you sure you want to delete this message? This action cannot be undone.
+                </p>
+              </hlm-alert-dialog-header>
+              <hlm-alert-dialog-footer>
+                <button hlmAlertDialogCancel (click)="ctx.close()">Cancel</button>
+                <button hlmAlertDialogAction (click)="deleteFile(); ctx.close()">Delete</button>
+              </hlm-alert-dialog-footer>
+            </hlm-alert-dialog-content>
+          </hlm-alert-dialog>
+          } @switch (message().fileType) {
+          <!-- Image Message -->
+          @case ('image') {
+          <div class="max-w-[250px] md:max-w-xs rounded-lg overflow-hidden">
+            <img
+              [src]="fileUrl()"
+              [alt]="message().fileName || 'Image'"
+              class="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+              (click)="downloadFile()"
+            />
+          </div>
+          }
+
+          <!-- Video Message -->
+          @case ('video') {
+          <div class="max-w-[250px] md:max-w-xs rounded-lg overflow-hidden">
+            <video [src]="fileUrl()" controls class="w-full h-auto" preload="metadata">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          }
+
+          <!-- Audio Message -->
+          @case ('audio') {
+          <div class="w-full min-w-[200px] max-w-[250px] md:max-w-xs">
+            <audio [src]="fileUrl()" controls class="w-full" preload="metadata">
+              Your browser does not support the audio tag.
+            </audio>
+          </div>
+          }
+
+          <!-- Document Message -->
+          @case ('document') {
+          <div
+            class="flex items-center gap-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            (click)="downloadFile()"
+          >
+            <div class="shrink-0">
+              <ng-icon [name]="fileIcon()" class="text-blue-600 dark:text-blue-400" size="32" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-xs md:text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {{ message().fileName }}
+              </div>
+              <div class="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">
+                {{ formatFileSize(message().fileSize || 0) }}
+              </div>
+            </div>
+            <div class="shrink-0">
+              <ng-icon name="lucideDownload" class="text-gray-600 dark:text-gray-400" size="20" />
+            </div>
+          </div>
+          } }
+
+          <!-- File caption (text) if provided -->
+          @if (message().text) {
+          <div class="mt-2 text-xs md:text-sm">
+            {{ message().text }}
+          </div>
+          }
+        </div>
+        }
+
+        <!-- Text-only Message -->
+        @if (!isFileMessage() && message().text) {
+        <p class="text-sm md:text-base">{{ message().text }}</p>
+        }
+      </div>
+    </div>
+    <span class="text-[11px] text-gray-700 dark:text-gray-300 text-end pt-1">
+      {{ formattedTime() }}
+    </span>
+  </div>
+</div>

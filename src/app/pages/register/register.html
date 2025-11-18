@@ -1,0 +1,111 @@
+<div class="flex items-center justify-center bg-gray-200 dark:bg-gray-900 min-h-screen p-4">
+  <section class="w-full max-w-sm" hlmCard>
+    <div hlmCardHeader>
+      <h3 hlmCardTitle>Create an account</h3>
+      <p hlmCardDescription>Enter your details to get started</p>
+
+      <div hlmCardAction>
+        <button hlmBtn variant="link" routerLink="/login">Sign In</button>
+      </div>
+    </div>
+
+    <div hlmCardContent>
+      <form [formGroup]="registerForm">
+        <div class="flex flex-col gap-6">
+          <hlm-form-field>
+            <label hlmLabel for="username">Username</label>
+            <input
+              formControlName="username"
+              type="text"
+              id="username"
+              placeholder="johndoe"
+              required
+              hlmInput
+            />
+
+            @if (registerForm.controls['username'].invalid &&
+            (registerForm.controls['username'].touched || registerForm.controls['username'].dirty) )
+            { @if (registerForm.controls['username'].errors?.['required']) {
+            <hlm-error>*Username is required</hlm-error>
+            } @if (registerForm.controls['username'].errors?.['minlength']) {
+            <hlm-error>*Username must be at least 3 characters</hlm-error>
+            } }
+          </hlm-form-field>
+
+          <hlm-form-field>
+            <label hlmLabel for="email">Email</label>
+            <input
+              formControlName="email"
+              type="email"
+              id="email"
+              placeholder="m@example.com"
+              required
+              hlmInput
+            />
+
+            @if (registerForm.controls['email'].invalid && (registerForm.controls['email'].touched
+            || registerForm.controls['email'].dirty) ) { @if
+            (registerForm.controls['email'].errors?.['required']) {
+            <hlm-error>*Email is required</hlm-error>
+            } @if (registerForm.controls['email'].errors?.['email']) {
+            <hlm-error>*Invalid email address</hlm-error>
+            } }
+          </hlm-form-field>
+
+          <hlm-form-field>
+            <label hlmLabel for="password">Password</label>
+            <input
+              formControlName="password"
+              type="password"
+              id="password"
+              placeholder="••••••••"
+              hlmInput
+            />
+
+            @if (registerForm.controls['password'].invalid &&
+            (registerForm.controls['password'].touched || registerForm.controls['password'].dirty) )
+            { @if(registerForm.controls['password'].errors?.['required']) {
+            <hlm-error>*Password is required</hlm-error>
+            } @if(registerForm.controls['password'].errors?.['minlength']) {
+            <hlm-error>*Password must be at least 6 characters long</hlm-error>
+            } }
+          </hlm-form-field>
+
+          <hlm-form-field>
+            <label hlmLabel for="passwordConfirm">Confirm Password</label>
+            <input
+              formControlName="passwordConfirm"
+              type="password"
+              id="passwordConfirm"
+              placeholder="••••••••"
+              hlmInput
+            />
+
+            @if (registerForm.controls['passwordConfirm'].invalid &&
+            (registerForm.controls['passwordConfirm'].touched ||
+            registerForm.controls['passwordConfirm'].dirty) ) {
+            @if(registerForm.controls['passwordConfirm'].errors?.['required']) {
+            <hlm-error>*Please confirm your password</hlm-error>
+            } }
+          </hlm-form-field>
+        </div>
+
+        @if (hasError()) {
+        <hlm-error>{{ errorMessage() }}</hlm-error>
+        }
+      </form>
+    </div>
+
+    <div hlmCardFooter class="flex-col gap-2">
+      <button
+        hlmBtn
+        type="submit"
+        class="w-full"
+        (click)="onSubmit()"
+        [disabled]="isLoading() || registerForm.invalid"
+      >
+        @if (isLoading()) { Creating account... } @else { Create Account }
+      </button>
+    </div>
+  </section>
+</div>

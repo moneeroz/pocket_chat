@@ -1,0 +1,74 @@
+<div class="relative">
+  <!-- Plus Button -->
+  <button
+    type="button"
+    (click)="toggleMenu()"
+    class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors touch-manipulation"
+    aria-label="Attach file"
+  >
+    <ng-icon name="lucidePlus" size="20" class="text-gray-600 dark:text-gray-400" />
+  </button>
+
+  <!-- Dropdown Menu -->
+  @if (showMenu()) {
+  <div
+    class="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-[200px] z-50 animate-in fade-in slide-in-from-bottom-2 duration-200"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Photo/Video Option -->
+    <button
+      type="button"
+      (click)="triggerFileInput('image')"
+      class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 flex items-center gap-3 transition-colors touch-manipulation"
+    >
+      <ng-icon name="lucideImage" size="20" class="text-blue-500" />
+      <div>
+        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">Photo</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">Upload images</div>
+      </div>
+    </button>
+
+    <!-- Video Option -->
+    <button
+      type="button"
+      (click)="triggerFileInput('video')"
+      class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 flex items-center gap-3 transition-colors touch-manipulation"
+    >
+      <ng-icon name="lucideVideo" size="20" class="text-purple-500 dark:text-purple-400" />
+      <div>
+        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">Video</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">Upload videos</div>
+      </div>
+    </button>
+
+    <!-- Audio Option -->
+    <button
+      type="button"
+      (click)="triggerFileInput('audio')"
+      class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 flex items-center gap-3 transition-colors touch-manipulation"
+    >
+      <ng-icon name="lucideMusic" size="20" class="text-green-500 dark:text-green-400" />
+      <div>
+        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">Audio</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">Upload audio files</div>
+      </div>
+    </button>
+
+    <!-- Document Option -->
+    <button
+      type="button"
+      (click)="triggerFileInput('document')"
+      class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 flex items-center gap-3 transition-colors touch-manipulation"
+    >
+      <ng-icon name="lucideFile" size="20" class="text-orange-500 dark:text-orange-400" />
+      <div>
+        <div class="text-sm font-medium text-gray-900 dark:text-gray-100">Document</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">PDF, DOC, ZIP, etc.</div>
+      </div>
+    </button>
+  </div>
+
+  <!-- Overlay to close menu -->
+  <div (click)="closeMenu()" class="fixed inset-0 z-40 cursor-default"></div>
+  }
+</div>

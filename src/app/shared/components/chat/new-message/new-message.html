@@ -1,0 +1,44 @@
+<div class="mb-3">
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+  <div class="mb-3">
+    <div hlmAlert variant="destructive">
+      <ng-icon hlm hlmAlertIcon name="lucideCircleAlert" />
+      <h4 hlmAlertTitle>Error</h4>
+      <p hlmAlertDescription>{{ errorMessage() }}</p>
+    </div>
+  </div>
+  }
+
+  <!-- Upload Progress Bar -->
+  @if (uploadProgress() !== null) {
+  <div class="mb-2">
+    <hlm-progress class="w-full" [value]="uploadProgress()">
+      <hlm-progress-indicator />
+    </hlm-progress>
+    <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center">
+      Uploading... {{ uploadProgress() }}%
+    </p>
+  </div>
+  }
+
+  <form (ngSubmit)="sendMessage()" class="flex items-center gap-2 my-3">
+    <!-- File Upload Button -->
+    <app-file-upload-button (fileSelected)="handleFileSelected($event)" class="shrink-0" />
+
+    <input
+      hlmInput
+      type="text"
+      [(ngModel)]="messageText"
+      name="text"
+      placeholder="Type your message.."
+      autocomplete="off"
+      class="flex-1"
+      [disabled]="isSending()"
+    />
+
+    <button hlmBtn type="submit" [disabled]="!messageText.trim() || isSending()" class="shrink-0">
+      <ng-icon name="lucideSend" />
+    </button>
+  </form>
+</div>

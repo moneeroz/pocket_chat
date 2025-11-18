@@ -1,0 +1,73 @@
+<div class="flex items-center justify-center bg-gray-200 dark:bg-gray-900 min-h-screen p-4">
+  <section class="w-full max-w-sm" hlmCard>
+    <div hlmCardHeader>
+      <h3 hlmCardTitle>Welcome back</h3>
+      <p hlmCardDescription>Sign in to your account to continue</p>
+
+      <div hlmCardAction>
+        <button hlmBtn variant="link" routerLink="/register">Sign Up</button>
+      </div>
+    </div>
+
+    <div hlmCardContent>
+      <form [formGroup]="loginForm">
+        <div class="flex flex-col gap-6">
+          <hlm-form-field>
+            <label hlmLabel for="email">Email</label>
+            <input
+              formControlName="email"
+              type="email"
+              id="email"
+              placeholder="m@example.com"
+              required
+              hlmInput
+            />
+
+            @if (loginForm.controls['email'].invalid && (loginForm.controls['email'].touched ||
+            loginForm.controls['email'].dirty) ) { @if
+            (loginForm.controls['email'].errors?.['required']) {
+            <hlm-error>*Email is required</hlm-error>
+            } @if (loginForm.controls['email'].errors?.['email']) {
+            <hlm-error>*Invalid email address</hlm-error>
+            } }
+          </hlm-form-field>
+
+          <hlm-form-field>
+            <label hlmLabel for="password">Password</label>
+            <input
+              formControlName="password"
+              type="password"
+              id="password"
+              placeholder="••••••••"
+              hlmInput
+            />
+
+            @if (loginForm.controls['password'].invalid && (loginForm.controls['password'].touched
+            || loginForm.controls['password'].dirty) ) {
+            @if(loginForm.controls['password'].errors?.['required']) {
+            <hlm-error>*Password is required</hlm-error>
+            } @if(loginForm.controls['password'].errors?.['minlength']) {
+            <hlm-error>*Password must be at least 6 characters long</hlm-error>
+            } }
+          </hlm-form-field>
+        </div>
+
+        @if (error()) {
+        <hlm-error>{{ error() }}</hlm-error>
+        }
+      </form>
+    </div>
+
+    <div hlmCardFooter class="flex-col gap-2">
+      <button
+        hlmBtn
+        type="submit"
+        class="w-full"
+        (click)="onSubmit()"
+        [disabled]="isLoading() || loginForm.invalid"
+      >
+        @if (isLoading()) { Logging in... } @else { Login }
+      </button>
+    </div>
+  </section>
+</div>

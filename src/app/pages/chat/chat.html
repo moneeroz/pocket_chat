@@ -1,0 +1,100 @@
+<div class="flex h-screen flex-col md:flex-row">
+  <!-- Left Sidebar: User Search + Conversation List -->
+  <!-- Hidden on mobile when conversation is selected, always visible on md+ -->
+  <div
+    class="border-r border-gray-200 dark:border-gray-700 flex flex-col bg-white dark:bg-gray-900"
+    [class.hidden]="currentConversation() !== null"
+    [class.w-full]="!currentConversation()"
+    [class.md:flex]="true"
+    [class.md:w-80]="true"
+  >
+    <!-- User Search -->
+    <app-user-search (userSelected)="onUserSelected($event)" />
+
+    <!-- Conversation List -->
+    <app-conversation-list
+      [selectedConversationId]="currentConversation()?.id || null"
+      (conversationSelected)="onConversationSelected($event)"
+    />
+  </div>
+
+  <!-- Right Side: Chat Area -->
+  <div
+    class="flex-1 flex flex-col h-screen"
+    [class.hidden]="!currentConversation()"
+    [class.md:flex]="true"
+  >
+    @if (!currentConversation()) {
+    <!-- No conversation selected -->
+    <div class="hidden md:flex flex-1 items-center justify-center text-gray-500 dark:text-gray-400">
+      <div class="text-center">
+        <p class="text-lg font-medium">Select a conversation or search for a user</p>
+        <p class="text-sm mt-2">Start chatting by selecting a conversation from the list</p>
+      </div>
+    </div>
+    } @else if (chatService.isLoading()) {
+    <!-- Loading messages -->
+    <div class="flex flex-1 justify-center items-center">
+      <ng-icon name="lucideLoader" size="48" class="animate-spin" />
+    </div>
+    } @else {
+    <!-- Chat Header -->
+    <div
+      class="shrink-0 px-4 md:px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
+    >
+      <div class="flex items-center gap-3">
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          (click)="backToConversations()"
+          class="md:hidden"
+        >
+          <ng-icon name="lucideChevronLeft" size="20" />
+        </button>
+
+        <hlm-avatar>
+          @if (getAvatarUrl(currentConversation())) {
+          <img
+            [src]="getAvatarUrl(currentConversation())"
+            hlmAvatarImage
+            [alt]="getOtherParticipant(currentConversation())?.username || 'User'"
+          />
+          }
+          <span class="text-white bg-destructive" hlmAvatarFallback>
+            {{
+              (getOtherParticipant(currentConversation())?.username || 'U').charAt(0).toUpperCase()
+            }}
+          </span>
+        </hlm-avatar>
+        <div class="flex-1 min-w-0">
+          <h2 class="font-semibold text-gray-900 dark:text-gray-100 truncate">
+            {{
+              getOtherParticipant(currentConversation())?.username ||
+                getOtherParticipant(currentConversation())?.email
+            }}
+          </h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages Area - Takes remaining space -->
+    <div class="flex-1 overflow-y-auto bg-white dark:bg-gray-900 px-3 py-4 pb-24">
+      @for (msg of chatService.messages(); track msg.id) {
+      <app-message-body [message]="msg" />
+      }
+      <!-- Scroll anchor -->
+      <div #scrollAnchor></div>
+    </div>
+    }
+  </div>
+
+  <!-- New Message Input - Fixed at bottom, outside grid -->
+  @if (currentConversation()) {
+  <div
+    class="fixed bottom-0 left-0 right-0 md:left-80 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 z-10 px-3"
+  >
+    <app-new-message [conversationId]="currentConversation()!.id" />
+  </div>
+  }
+</div>

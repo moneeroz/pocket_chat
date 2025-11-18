@@ -1,0 +1,86 @@
+<div class="relative">
+  <!-- Backdrop overlay to close menu -->
+  @if (showMenu()) {
+  <div class="fixed inset-0 z-10" (click)="closeMenu()"></div>
+  }
+
+  <!-- User Menu Button -->
+  <button
+    (click)="toggleMenu()"
+    class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors relative z-20"
+    [class.bg-gray-700]="showMenu()"
+    [class.dark:bg-gray-800]="showMenu()"
+  >
+    <!-- Avatar -->
+    <hlm-avatar size="sm">
+      @if (avatarUrl()) {
+      <img [src]="avatarUrl()" hlmAvatarImage [alt]="user()?.username || 'User'" />
+      }
+      <span class="text-white bg-destructive" hlmAvatarFallback>
+        {{ userInitial() }}
+      </span>
+    </hlm-avatar>
+
+    <!-- Username (hidden on mobile) -->
+    <span class="hidden md:block text-sm font-medium text-white">
+      {{ user()?.username }}
+    </span>
+
+    <!-- Chevron Icon -->
+    <ng-icon
+      name="lucideChevronDown"
+      size="16"
+      class="text-gray-300 transition-transform"
+      [class.rotate-180]="showMenu()"
+    />
+  </button>
+
+  <!-- Dropdown Menu -->
+  @if (showMenu()) {
+  <div
+    class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-20 animate-in fade-in slide-in-from-top-2 duration-200"
+  >
+    <!-- User Info Section -->
+    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+      <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+        {{ user()?.username }}
+      </p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+        {{ user()?.email }}
+      </p>
+    </div>
+
+    <!-- Menu Items -->
+    <div class="py-1">
+      <!-- Profile -->
+      <button
+        (click)="navigateToProfile()"
+        class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      >
+        <ng-icon name="lucideUser" size="18" />
+        <span>Edit Profile</span>
+      </button>
+
+      <!-- Dark Mode Toggle -->
+      <button
+        (click)="toggleTheme()"
+        class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      >
+        <ng-icon [name]="themeIcon()" size="18" />
+        <span>{{ themeLabel() }}</span>
+      </button>
+    </div>
+
+    <!-- Sign Out -->
+    <div class="pt-1 border-t border-gray-200 dark:border-gray-700">
+      <button
+        (click)="signOut()"
+        class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+      >
+        <ng-icon name="lucideLogOut" size="18" />
+        <span>Sign Out</span>
+      </button>
+    </div>
+  </div>
+  }
+</div>

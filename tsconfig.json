@@ -1,0 +1,70 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "paths": {
+      "@shared/*": [
+        "./src/app/shared/*"
+      ],
+      "@/*": [
+        "./src/app/*"
+      ],
+      "@spartan-ng/helm/button": [
+        "./src/app/shared/components/ui/button/src/index.ts"
+      ],
+      "@spartan-ng/helm/utils": [
+        "./src/app/shared/components/ui/utils/src/index.ts"
+      ],
+      "@spartan-ng/helm/card": [
+        "./src/app/shared/components/ui/card/src/index.ts"
+      ],
+      "@spartan-ng/helm/label": [
+        "./src/app/shared/components/ui/label/src/index.ts"
+      ],
+      "@spartan-ng/helm/input": [
+        "./src/app/shared/components/ui/input/src/index.ts"
+      ],
+      "@spartan-ng/helm/form-field": [
+        "./src/app/shared/components/ui/form-field/src/index.ts"
+      ],
+      "@spartan-ng/helm/avatar": [
+        "./src/app/shared/components/ui/avatar/src/index.ts"
+      ],
+      "@spartan-ng/helm/progress": [
+        "./src/app/shared/components/ui/progress/src/index.ts"
+      ],
+      "@spartan-ng/helm/alert": [
+        "./src/app/shared/components/ui/alert/src/index.ts"
+      ],
+      "@spartan-ng/helm/icon": [
+        "./src/app/shared/components/ui/icon/src/index.ts"
+      ],
+      "@spartan-ng/helm/alert-dialog": [
+        "./src/app/shared/components/ui/alert-dialog/src/index.ts"
+      ]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "typeCheckHostBindings": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ]
+}

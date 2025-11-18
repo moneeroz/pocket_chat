@@ -1,0 +1,193 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
+  <div class="max-w-2xl mx-auto">
+    <!-- Back Button -->
+    <button
+      (click)="goBack()"
+      class="flex items-center gap-2 text-sm md:text-base text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6 transition-colors touch-manipulation"
+    >
+      <ng-icon name="lucideArrowLeft" size="18" />
+      <span>Back to Chat</span>
+    </button>
+
+    <!-- Page Title -->
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">
+      Profile Settings
+    </h1>
+
+    <!-- Error/Success Messages -->
+    @if (error()) {
+    <div
+      class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+    >
+      <p class="text-sm text-red-800 dark:text-red-200">{{ error() }}</p>
+    </div>
+    } @if (success()) {
+    <div
+      class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
+    >
+      <p class="text-sm text-green-800 dark:text-green-200">{{ success() }}</p>
+    </div>
+    }
+
+    <!-- Account Information -->
+    <section hlmCard class="mb-8">
+      <div hlmCardHeader>
+        <h3 hlmCardTitle>Account Information</h3>
+        <p hlmCardDescription>View your account details</p>
+      </div>
+      <div hlmCardContent class="space-y-4">
+        <div>
+          <label class="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Username</label
+          >
+          <p class="mt-1 text-sm md:text-base text-gray-900 dark:text-gray-100">
+            {{ user()?.username }}
+          </p>
+        </div>
+        <div>
+          <label class="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300"
+            >Email</label
+          >
+          <p class="mt-1 text-sm md:text-base text-gray-900 dark:text-gray-100">
+            {{ user()?.email }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Avatar Upload -->
+    <section hlmCard class="mb-8">
+      <div hlmCardHeader>
+        <h3 hlmCardTitle>Profile Picture</h3>
+        <p hlmCardDescription>Upload a new profile picture (max 5MB)</p>
+      </div>
+      <div hlmCardContent>
+        <div class="flex flex-col md:flex-row md:items-start gap-6">
+          <!-- Current/Preview Avatar -->
+          <div class="flex flex-col items-center gap-3">
+            <hlm-avatar size="lg">
+              @if (previewUrl()) {
+              <img [src]="previewUrl()" hlmAvatarImage alt="Preview" />
+              } @else if (currentAvatarUrl()) {
+              <img [src]="currentAvatarUrl()" hlmAvatarImage alt="Avatar" />
+              }
+              <span class="text-white bg-destructive" hlmAvatarFallback>
+                {{ (user()?.username || user()?.email || '?').charAt(0).toUpperCase() }}
+              </span>
+            </hlm-avatar>
+          </div>
+
+          <!-- Upload Form -->
+          <div class="flex-1 space-y-4">
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                (change)="onFileSelected($event)"
+                class="hidden"
+                #fileInput
+              />
+              <button
+                hlmBtn
+                variant="outline"
+                (click)="fileInput.click()"
+                [disabled]="isLoading()"
+                class="w-full md:w-auto"
+              >
+                <ng-icon name="lucideUpload" size="18" class="mr-2" />
+                Choose Image
+              </button>
+            </div>
+
+            @if (selectedFile()) {
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <p
+                class="text-xs md:text-sm text-gray-600 dark:text-gray-400 flex-1 truncate w-full sm:w-auto"
+              >
+                {{ selectedFile()?.name }}
+              </p>
+              <button
+                hlmBtn
+                (click)="uploadAvatar()"
+                [disabled]="isLoading()"
+                class="shrink-0 w-full sm:w-auto"
+              >
+                @if (isLoading()) {
+                <span>Uploading...</span>
+                } @else {
+                <span>Upload</span>
+                }
+              </button>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Change Password -->
+    <section hlmCard>
+      <div hlmCardHeader>
+        <h3 hlmCardTitle>Change Password</h3>
+        <p hlmCardDescription>Update your password to keep your account secure</p>
+      </div>
+      <div hlmCardContent>
+        <form [formGroup]="passwordForm" (ngSubmit)="onPasswordSubmit()" class="space-y-6">
+          <!-- Current Password -->
+          <div class="space-y-2">
+            <label hlmLabel class="text-sm font-medium">Current Password</label>
+            <input
+              hlmInput
+              type="password"
+              formControlName="currentPassword"
+              placeholder="Enter current password"
+            />
+          </div>
+
+          <!-- New Password -->
+          <div class="space-y-2">
+            <label hlmLabel class="text-sm font-medium">New Password</label>
+            <input
+              hlmInput
+              type="password"
+              formControlName="newPassword"
+              placeholder="Enter new password (min 6 characters)"
+            />
+            @if(passwordForm.controls['newPassword'].errors?.['minlength']) {
+            <hlm-error>*Password must be at least 6 characters long</hlm-error>
+            }
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="space-y-2">
+            <label hlmLabel class="text-sm font-medium">Confirm New Password</label>
+            <input
+              hlmInput
+              type="password"
+              formControlName="confirmPassword"
+              placeholder="Confirm new password"
+            />
+            @if (passwordForm.hasError('passwordMismatch') &&
+            passwordForm.get('confirmPassword')?.touched) {
+            <hlm-error>*Passwords do not match</hlm-error>
+            }
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            hlmBtn
+            type="submit"
+            [disabled]="passwordForm.invalid || isLoading()"
+            class="w-full md:w-auto"
+          >
+            @if (isLoading()) {
+            <span>Updating...</span>
+            } @else {
+            <span>Update Password</span>
+            }
+          </button>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
