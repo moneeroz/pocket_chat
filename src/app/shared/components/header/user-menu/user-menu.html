@@ -1,7 +1,7 @@
 <div class="relative">
   <!-- Backdrop overlay to close menu -->
   @if (showMenu()) {
-  <div class="fixed inset-0 z-10" (click)="closeMenu()"></div>
+  <div class="fixed inset-0 z-40" (click)="closeMenu()"></div>
   }
 
   <!-- User Menu Button -->
@@ -11,15 +11,21 @@
     [class.bg-gray-700]="showMenu()"
     [class.dark:bg-gray-800]="showMenu()"
   >
-    <!-- Avatar -->
-    <hlm-avatar size="sm">
-      @if (avatarUrl()) {
-      <img [src]="avatarUrl()" hlmAvatarImage [alt]="user()?.username || 'User'" />
+    <!-- Avatar with notification dot -->
+    <div class="relative">
+      <hlm-avatar size="sm">
+        @if (avatarUrl()) {
+        <img [src]="avatarUrl()" hlmAvatarImage [alt]="user()?.username || 'User'" />
+        }
+        <span class="text-white bg-destructive" hlmAvatarFallback>
+          {{ userInitial() }}
+        </span>
+      </hlm-avatar>
+      <!-- Notification Dot -->
+      @if (pendingRequestCount() > 0) {
+      <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border 2 border-gray-700 dark:border-gray-900"></div>
       }
-      <span class="text-white bg-destructive" hlmAvatarFallback>
-        {{ userInitial() }}
-      </span>
-    </hlm-avatar>
+    </div>
 
     <!-- Username (hidden on mobile) -->
     <span class="hidden md:block text-sm font-medium text-white">
@@ -38,7 +44,7 @@
   <!-- Dropdown Menu -->
   @if (showMenu()) {
   <div
-    class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-20 animate-in fade-in slide-in-from-top-2 duration-200"
+    class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
   >
     <!-- User Info Section -->
     <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
@@ -59,6 +65,22 @@
       >
         <ng-icon name="lucideUser" size="18" />
         <span>Edit Profile</span>
+      </button>
+
+      <!-- Friends -->
+      <button
+        (click)="navigateToFriends()"
+        class="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      >
+        <ng-icon name="lucideUsers" size="18" />
+        <div class="flex items-center justify-between flex-1">
+          <span>Friends</span>
+          @if (pendingRequestCount() > 0) {
+          <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+            {{ pendingRequestCount() }}
+          </span>
+          }
+        </div>
       </button>
 
       <!-- Dark Mode Toggle -->

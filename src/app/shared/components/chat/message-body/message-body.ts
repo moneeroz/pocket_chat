@@ -4,7 +4,6 @@ import { AuthService } from '@/services/auth-service';
 import { ChatService } from '@/services/chat-service';
 import { formatMessageTime } from '@shared/utils/date.utils';
 import { formatFileSize, getFileIcon } from '@shared/utils/file.utils';
-import { LONG_PRESS_DURATION } from '@shared/constants/app.constants';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { BrnAlertDialogImports } from '@spartan-ng/brain/alert-dialog';
 import { HlmAlertDialogImports } from '@shared/components/ui/alert-dialog/src';
@@ -18,6 +17,7 @@ import {
   lucideVideo,
   lucideImage,
   lucideTrash2,
+  lucideMoreVertical,
 } from '@ng-icons/lucide';
 
 @Component({
@@ -33,6 +33,7 @@ import {
       lucideVideo,
       lucideImage,
       lucideTrash2,
+      lucideMoreVertical,
     }),
   ],
   templateUrl: './message-body.html',
@@ -43,10 +44,8 @@ export class MessageBody implements OnDestroy {
 
   message = input.required<IMessage>();
 
-  // Long-press state
-  protected readonly showActions = signal(false);
-  private longPressTimer: number | null = null;
-  private readonly LONG_PRESS_DURATION = LONG_PRESS_DURATION;
+  // Menu state for file actions
+  protected readonly showFileMenu = signal(false);
 
   readonly isCurrentUser = computed(() => this.message().user === this.authService.user()?.id);
 
@@ -62,7 +61,7 @@ export class MessageBody implements OnDestroy {
   readonly fileIcon = computed(() => getFileIcon(this.message().fileType, this.message().fileName));
 
   readonly containerClass = computed(() => {
-    const base = 'group flex gap-2 py-1 px-2 md:px-4';
+    const base = 'group flex gap-2 py-2 px-2 md:px-4';
     return this.isCurrentUser() ? `${base} flex-row-reverse text-left` : base;
   });
 
@@ -89,9 +88,10 @@ export class MessageBody implements OnDestroy {
     if (url) {
       const link = document.createElement('a');
       link.href = url;
-      link.download = this.message().fileName + '?download=1' || 'download';
+      link.download = this.message().fileName || 'download';
       link.click();
     }
+    this.closeFileMenu();
   }
 
   async deleteFile(): Promise<void> {
@@ -101,45 +101,23 @@ export class MessageBody implements OnDestroy {
 
     try {
       await this.chatService.deleteMessage(this.message().id);
-      this.showActions.set(false);
+      this.closeFileMenu();
     } catch (error) {
-      console.error('Failed to delete file:', error);
       // Error will be shown in alert dialog
     }
   }
 
-  onPressStart(event: MouseEvent | TouchEvent): void {
-    if (!this.isCurrentUser() || !this.isFileMessage()) {
-      return;
-    }
-
-    event.preventDefault();
-    this.longPressTimer = setTimeout(() => {
-      this.showActions.set(true);
-    }, this.LONG_PRESS_DURATION);
+  toggleFileMenu(event: Event): void {
+    event.stopPropagation();
+    this.showFileMenu.update((v) => !v);
   }
 
-  onPressEnd(): void {
-    if (this.longPressTimer) {
-      clearTimeout(this.longPressTimer);
-      this.longPressTimer = null;
-    }
-  }
-
-  onPressCancel(): void {
-    this.onPressEnd();
-  }
-
-  hideActions(): void {
-    this.showActions.set(false);
+  closeFileMenu(): void {
+    this.showFileMenu.set(false);
   }
 
   ngOnDestroy(): void {
-    // Clear any pending timers to prevent memory leaks
-    if (this.longPressTimer) {
-      clearTimeout(this.longPressTimer);
-      this.longPressTimer = null;
-    }
+    this.closeFileMenu();
   }
 
   // Expose utility functions for template

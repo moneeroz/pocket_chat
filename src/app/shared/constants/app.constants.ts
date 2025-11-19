@@ -71,7 +71,7 @@ export const MESSAGES_PER_PAGE = 50;
 /**
  * Scroll behavior constants
  */
-export const SCROLL_TO_BOTTOM_DELAY = 100; // milliseconds
+export const SCROLL_TO_BOTTOM_DELAY = 300; // milliseconds (increased to allow file rendering)
 
 /**
  * Debounce durations (in milliseconds)
@@ -79,4 +79,38 @@ export const SCROLL_TO_BOTTOM_DELAY = 100; // milliseconds
 export const DEBOUNCE_DURATIONS = {
   search: 300,
   input: 150,
+} as const;
+
+/**
+ * Relation type definitions and labels
+ */
+export const RELATION_TYPES = {
+  no_relation: 'No Relation',
+  friend: 'Friend',
+  blocked: 'Blocked',
+  pending_sent: 'Request Sent',
+  pending_received: 'Request Received',
+} as const;
+
+/**
+ * Relation error messages
+ */
+export const RELATION_ERRORS = {
+  not_authenticated: 'User not authenticated',
+  invalid_user: 'Invalid user ID',
+  cannot_relate_self: 'Cannot perform action on yourself',
+  relation_not_found: 'Relation not found',
+  friend_already_exists: 'User is already your friend',
+  request_already_sent: 'Friend request already sent',
+  already_blocked: 'User is already blocked',
+  block_invalid_state: 'Cannot block in current relation state',
+  unblock_failed: 'User is not blocked',
+} as const;
+
+/**
+ * Relation service polling/refresh durations (in milliseconds)
+ */
+export const RELATION_TIMINGS = {
+  subscriptionRetryDelay: 3000,
+  relationStatusCacheDuration: 5000,
 } as const;

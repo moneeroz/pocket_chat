@@ -5,6 +5,7 @@ import { map } from 'rxjs';
 import { AuthService } from '@/services/auth-service';
 import { ChatService } from '@/services/chat-service';
 import { ConversationService } from '@/services/conversation-service';
+import { RelationService } from '@/services/relation-service';
 import { MessageBody } from '@shared/components/chat/message-body/message-body';
 import { NewMessage } from '@shared/components/chat/new-message/new-message';
 import { UserSearch } from '@shared/components/chat/user-search/user-search';
@@ -12,7 +13,7 @@ import { ConversationList } from '@shared/components/chat/conversation-list/conv
 import { IConversation } from '@shared/interfaces/iconversation';
 import { IAuthUser } from '@shared/interfaces/iauth-user';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideLoader, lucideChevronLeft } from '@ng-icons/lucide';
+import { lucideLoader, lucideChevronLeft, lucideMoreVertical, lucideShield, lucideUserMinus } from '@ng-icons/lucide';
 import { HlmAvatarImports } from '@shared/components/ui/avatar/src';
 import { HlmButtonImports } from '@shared/components/ui/button/src';
 import { SCROLL_TO_BOTTOM_DELAY } from '@shared/constants/app.constants';
@@ -32,6 +33,9 @@ import { SCROLL_TO_BOTTOM_DELAY } from '@shared/constants/app.constants';
     provideIcons({
       lucideLoader,
       lucideChevronLeft,
+      lucideMoreVertical,
+      lucideShield,
+      lucideUserMinus,
     }),
   ],
   templateUrl: './chat.html',
@@ -40,14 +44,19 @@ export class Chat implements OnDestroy {
   readonly chatService = inject(ChatService);
   readonly conversationService = inject(ConversationService);
   private readonly authService = inject(AuthService);
+  private readonly relationService = inject(RelationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   // Scroll anchor reference
-  private readonly scrollAnchor = viewChild<ElementRef<HTMLDivElement>>('scrollAnchor');
+  // Scroll anchor reference (no longer used - kept for reference)
+  private readonly messagesContainer = viewChild<ElementRef<HTMLDivElement>>('messagesContainer');
 
   // Current active conversation
   protected readonly currentConversation = signal<IConversation | null>(null);
+
+  // Menu visibility state
+  protected readonly showMenu = signal<boolean>(false);
 
   // Convert route params to signal
   private readonly conversationIdFromRoute = toSignal(
@@ -81,6 +90,14 @@ export class Chat implements OnDestroy {
       const messages = this.chatService.messages();
       if (messages.length > 0) {
         this.scrollToBottom();
+        
+        // For file messages, add an extra scroll after longer delay to account for file rendering
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage && lastMessage.file) {
+          setTimeout(() => {
+            this.scrollToBottom();
+          }, 500);
+        }
       }
     });
   }
@@ -115,7 +132,11 @@ export class Chat implements OnDestroy {
   private scrollToBottom(): void {
     // Small delay to ensure DOM is updated
     setTimeout(() => {
-      this.scrollAnchor()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      const container = this.messagesContainer()?.nativeElement;
+      if (container) {
+        // Scroll to the very bottom by setting scrollTop to scrollHeight
+        container.scrollTop = container.scrollHeight;
+      }
     }, SCROLL_TO_BOTTOM_DELAY);
   }
 
@@ -127,6 +148,49 @@ export class Chat implements OnDestroy {
   getAvatarUrl(conversation: IConversation | null): string {
     const participant = this.getOtherParticipant(conversation);
     return this.authService.getAvatarUrl(participant);
+  }
+
+  toggleMenu(): void {
+    this.showMenu.update((v) => !v);
+  }
+
+  async blockUserInConversation(): Promise<void> {
+    const conversation = this.currentConversation();
+    if (!conversation) return;
+
+    const otherUser = this.getOtherParticipant(conversation);
+    if (!otherUser) return;
+
+    try {
+      await this.relationService.blockUser(otherUser.id);
+      // Close menu and clear conversation
+      this.showMenu.set(false);
+      this.currentConversation.set(null);
+      // Redirect to chat list
+      await this.router.navigate(['/chat']);
+    } catch (error) {
+      console.error('Failed to block user:', error);
+    }
+  }
+
+  async removeFriendInConversation(): Promise<void> {
+    const conversation = this.currentConversation();
+    if (!conversation) return;
+
+    const otherUser = this.getOtherParticipant(conversation);
+    if (!otherUser) return;
+
+    try {
+      // Remove friendship by deleting all friend relations with this user
+      await this.relationService.removeFriend(otherUser.id);
+      // Close menu and clear conversation
+      this.showMenu.set(false);
+      this.currentConversation.set(null);
+      // Redirect to chat list
+      await this.router.navigate(['/chat']);
+    } catch (error) {
+      console.error('Failed to remove friend:', error);
+    }
   }
 
   async backToConversations(): Promise<void> {

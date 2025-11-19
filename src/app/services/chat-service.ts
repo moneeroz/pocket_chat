@@ -1,5 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { AuthService } from './auth-service';
+import { RelationService } from './relation-service';
+import { ConversationService } from './conversation-service';
 import { IMessage } from '@shared/interfaces/imessage';
 import { FileUploadType, MESSAGES_PER_PAGE } from '@shared/constants/app.constants';
 import { handleError } from '@shared/utils/error.utils';
@@ -9,6 +11,8 @@ import { handleError } from '@shared/utils/error.utils';
 })
 export class ChatService {
   private readonly authService = inject(AuthService);
+  private readonly relationService = inject(RelationService);
+  private readonly conversationService = inject(ConversationService);
   private readonly pb = this.authService.getPocketBase();
 
   // Signals for reactive state
@@ -86,7 +90,7 @@ export class ChatService {
         this.unsubscribe = unsub;
       })
       .catch((error) => {
-        console.error('Failed to subscribe to messages:', error);
+        // Silently handle subscription errors
       });
   }
 
@@ -115,6 +119,9 @@ export class ChatService {
     }
 
     try {
+      // Check for block restrictions
+      await this.checkBlockStatus(conversationId);
+
       const data = {
         text: text.trim(),
         user: currentUser.id,
@@ -152,6 +159,9 @@ export class ChatService {
     }
 
     try {
+      // Check for block restrictions
+      await this.checkBlockStatus(conversationId);
+
       // Create FormData with file
       const formData = new FormData();
       formData.append('file', file);
@@ -206,10 +216,13 @@ export class ChatService {
 
   /**
    * Get file URL from PocketBase
+   * Adds ?download=1 parameter to force browser download instead of preview
    */
   getFileUrl(message: IMessage, filename?: string): string {
     if (!message.file) return '';
-    return this.pb.files.getURL(message, filename || message.file);
+    const baseUrl = this.pb.files.getURL(message, filename || message.file);
+    // Add download parameter to force download instead of preview
+    return `${baseUrl}?download=1`;
   }
 
   /**
@@ -300,7 +313,7 @@ export class ChatService {
         this.messagesSignal.update((prev) => [...prev, newMessage]);
       }
     } catch (error) {
-      console.error('Failed to handle message create:', error);
+      // Silently handle message creation errors
     }
   }
 
@@ -320,5 +333,42 @@ export class ChatService {
    */
   private handleMessageDelete(record: any): void {
     this.messagesSignal.update((prev) => prev.filter((m) => m.id !== record.id));
+  }
+
+  /**
+   * Check if communication is blocked between current user and the other participant in the conversation
+   * @param conversationId The conversation ID to check
+   * @throws Error if blocked by either party
+   */
+  private async checkBlockStatus(conversationId: string): Promise<void> {
+    const currentUser = this.authService.user();
+    if (!currentUser) return;
+
+    try {
+      // Get the conversation to find the other participant
+      const conversation = await this.conversationService.getConversationById(conversationId);
+      if (!conversation) {
+        throw new Error('Conversation not found');
+      }
+
+      // Find the other participant (not current user)
+      const otherUserId = conversation.participants.find((id) => id !== currentUser.id);
+      if (!otherUserId) {
+        throw new Error('Cannot determine other participant');
+      }
+
+      // Check if current user has blocked the other user
+      if (this.relationService.isBlockedByMe(otherUserId)) {
+        throw new Error('You have blocked this user. Unblock them to send messages.');
+      }
+
+      // Check if other user has blocked current user
+      if (this.relationService.isBlockedBy(otherUserId)) {
+        throw new Error('This user has blocked you. You cannot send messages.');
+      }
+    } catch (error: any) {
+      // Re-throw to prevent message sending
+      throw error;
+    }
   }
 }

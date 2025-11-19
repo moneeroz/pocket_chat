@@ -75,16 +75,49 @@
             }}
           </h2>
         </div>
+        
+        <!-- Menu Button -->
+        <div class="relative">
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon"
+            (click)="toggleMenu()"
+            title="More options"
+          >
+            <ng-icon name="lucideMoreVertical" size="20" />
+          </button>
+          
+          <!-- Menu Dropdown -->
+          @if (showMenu()) {
+          <div
+            class="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50"
+          >
+            <button
+              (click)="removeFriendInConversation()"
+              class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 first:rounded-t-md flex items-center gap-2 text-yellow-600 dark:text-yellow-400"
+            >
+              <ng-icon name="lucideUserMinus" size="16" />
+              <span>Remove Friend</span>
+            </button>
+            <button
+              (click)="blockUserInConversation()"
+              class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 last:rounded-b-md flex items-center gap-2 text-red-600 dark:text-red-400"
+            >
+              <ng-icon name="lucideShield" size="16" />
+              <span>Block User</span>
+            </button>
+          </div>
+          }
+        </div>
       </div>
     </div>
 
     <!-- Messages Area - Takes remaining space -->
-    <div class="flex-1 overflow-y-auto bg-white dark:bg-gray-900 px-3 py-4 pb-24">
+    <div #messagesContainer class="flex-1 overflow-y-auto bg-white dark:bg-gray-900 px-3 pt-2 pb-40">
       @for (msg of chatService.messages(); track msg.id) {
       <app-message-body [message]="msg" />
       }
-      <!-- Scroll anchor -->
-      <div #scrollAnchor></div>
     </div>
     }
   </div>

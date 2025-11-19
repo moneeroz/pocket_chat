@@ -1,0 +1,135 @@
+<div class="min-h-screen bg-white dark:bg-gray-900">
+  <!-- Header -->
+  <div class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0">
+    <div class="max-w-2xl mx-auto px-4 md:px-6 py-4 flex items-center gap-4">
+      <button
+        (click)="goBack()"
+        class="shrink-0 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors touch-manipulation"
+        title="Go back"
+      >
+        <ng-icon name="lucideArrowLeft" size="24" class="text-gray-700 dark:text-gray-300" />
+      </button>
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">Friends</h1>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Manage friend requests and blocked users</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-2xl mx-auto px-4 md:px-6 py-8 space-y-8">
+    <!-- Pending Friend Requests Section -->
+    <section hlmCard>
+      <div hlmCardHeader>
+        <h3 hlmCardTitle>Pending Friend Requests</h3>
+        <p hlmCardDescription>Accept or reject friend requests from other users</p>
+      </div>
+      <div hlmCardContent>
+        @if (pendingRequests().length === 0) {
+        <p class="text-sm text-gray-600 dark:text-gray-400 py-4">
+          You have no pending friend requests
+        </p>
+        } @else {
+        <div class="space-y-3">
+          @for (relation of pendingRequests(); track relation.id) {
+          @if (relation.expand?.from_user) {
+          <div
+            class="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+          >
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <hlm-avatar size="sm">
+                <span class="text-xs bg-blue-600" hlmAvatarFallback>
+                  {{
+                    (relation.expand?.from_user?.username || relation.expand?.from_user?.email || '?')
+                      .charAt(0)
+                      .toUpperCase()
+                  }}
+                </span>
+              </hlm-avatar>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {{ relation.expand?.from_user?.username }}
+                </p>
+                <p class="text-xs text-gray-600 dark:text-gray-400 truncate">
+                  {{ relation.expand?.from_user?.email }}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 ml-2 shrink-0">
+              <app-relation-action-button [userId]="relation.from_user" size="sm" />
+              <button
+                hlmBtn
+                variant="ghost"
+                size="sm"
+                (click)="rejectFriendRequest(relation.from_user)"
+                [disabled]="isLoading()"
+                title="Reject friend request"
+              >
+                <ng-icon name="lucideTrash2" size="16" class="text-red-600 dark:text-red-400" />
+              </button>
+            </div>
+          </div>
+          }
+          }
+        </div>
+        }
+      </div>
+    </section>
+
+    <!-- Blocked Users Section -->
+    <section hlmCard>
+      <div hlmCardHeader>
+        <h3 hlmCardTitle>Blocked Users</h3>
+        <p hlmCardDescription>Manage users you have blocked</p>
+      </div>
+      <div hlmCardContent>
+        @if (blockedUsers().length === 0) {
+        <p class="text-sm text-gray-600 dark:text-gray-400 py-4">
+          You have not blocked any users yet
+        </p>
+        } @else {
+        <div class="space-y-3">
+          @for (relation of blockedUsers(); track relation.id) {
+          @if (relation.expand?.to_user) {
+          <div
+            class="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+          >
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <hlm-avatar size="sm">
+                <span class="text-xs bg-destructive" hlmAvatarFallback>
+                  {{
+                    (relation.expand?.to_user?.username || relation.expand?.to_user?.email || '?')
+                      .charAt(0)
+                      .toUpperCase()
+                  }}
+                </span>
+              </hlm-avatar>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {{ relation.expand?.to_user?.username }}
+                </p>
+                <p class="text-xs text-gray-600 dark:text-gray-400 truncate">
+                  {{ relation.expand?.to_user?.email }}
+                </p>
+              </div>
+            </div>
+            <button
+              hlmBtn
+              variant="ghost"
+              size="sm"
+              (click)="unblockUser(relation.to_user)"
+              [disabled]="isLoading()"
+              title="Unblock user"
+              class="ml-2 shrink-0"
+            >
+              <ng-icon name="lucideShieldOff" size="16" class="text-red-600 dark:text-red-400" />
+            </button>
+          </div>
+          }
+          }
+        </div>
+        }
+      </div>
+    </section>
+  </div>
+</div>

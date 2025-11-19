@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideUser,
+  lucideUsers,
   lucideLogOut,
   lucideMoon,
   lucideSun,
@@ -10,6 +11,7 @@ import {
 } from '@ng-icons/lucide';
 import { AuthService } from '@/services/auth-service';
 import { ThemeService } from '@/services/theme-service';
+import { RelationService } from '@/services/relation-service';
 import { HlmAvatarImports } from '@shared/components/ui/avatar/src';
 
 
@@ -19,6 +21,7 @@ import { HlmAvatarImports } from '@shared/components/ui/avatar/src';
   viewProviders: [
     provideIcons({
       lucideUser,
+      lucideUsers,
       lucideLogOut,
       lucideMoon,
       lucideSun,
@@ -30,11 +33,13 @@ import { HlmAvatarImports } from '@shared/components/ui/avatar/src';
 export class UserMenu {
   private readonly authService = inject(AuthService);
   private readonly themeService = inject(ThemeService);
+  private readonly relationService = inject(RelationService);
   private readonly router = inject(Router);
 
   protected readonly user = this.authService.user;
   protected readonly isDarkMode = this.themeService.isDarkMode;
   protected readonly showMenu = signal(false);
+  protected readonly pendingRequestCount = computed(() => this.relationService.pendingRequestCount());
 
   protected readonly themeIcon = computed(() => (this.isDarkMode() ? 'lucideSun' : 'lucideMoon'));
 
@@ -64,6 +69,11 @@ export class UserMenu {
 
   navigateToProfile(): void {
     this.router.navigate(['/profile']);
+    this.closeMenu();
+  }
+
+  navigateToFriends(): void {
+    this.router.navigate(['/friends']);
     this.closeMenu();
   }
 

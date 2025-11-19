@@ -1,5 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { AuthService } from './auth-service';
+import { RelationService } from './relation-service';
 import { IConversation } from '@shared/interfaces/iconversation';
 import { IAuthUser } from '@shared/interfaces/iauth-user';
 
@@ -8,6 +9,7 @@ import { IAuthUser } from '@shared/interfaces/iauth-user';
 })
 export class ConversationService {
   private readonly authService = inject(AuthService);
+  private readonly relationService = inject(RelationService);
   private readonly pb = this.authService.getPocketBase();
 
   // Signals for reactive state
@@ -24,6 +26,7 @@ export class ConversationService {
 
   /**
    * Fetch all conversations for the current user
+   * Filters out conversations with blocked users or non-friends
    */
   async fetchConversations(): Promise<void> {
     const currentUser = this.authService.user();
@@ -40,11 +43,41 @@ export class ConversationService {
         expand: 'participants',
       });
 
-      this.conversationsSignal.set(resultList.items);
+      // Filter conversations by checking friendship status from database
+      // This ensures consistency even if signals are not yet synced
+      const filteredConversations: IConversation[] = [];
+
+      for (const conversation of resultList.items) {
+        const otherParticipant = this.getOtherParticipant(conversation);
+        if (!otherParticipant) continue;
+
+        // Check block status from in-memory signals (fast path)
+        if (this.relationService.isBlockedByMe(otherParticipant.id)) {
+          continue;
+        }
+        if (this.relationService.isBlockedBy(otherParticipant.id)) {
+          continue;
+        }
+
+        // Check friendship status from database (ensures consistency across users)
+        try {
+          const friendshipRelations = await this.pb.collection('relations').getList(1, 1, {
+            filter: `(from_user = "${currentUser.id}" && to_user = "${otherParticipant.id}" && type = "friend") || (from_user = "${otherParticipant.id}" && to_user = "${currentUser.id}" && type = "friend")`,
+          });
+
+          // Only include conversation if friendship exists in database
+          if (friendshipRelations.items.length > 0) {
+            filteredConversations.push(conversation);
+          }
+        } catch (error) {
+          // If query fails, skip this conversation
+        }
+      }
+
+      this.conversationsSignal.set(filteredConversations);
     } catch (error: any) {
       const errorMessage = error?.message || 'Failed to fetch conversations';
       this.errorSignal.set(errorMessage);
-      console.error('Failed to fetch conversations:', error);
     } finally {
       this.loadingSignal.set(false);
     }
@@ -52,11 +85,18 @@ export class ConversationService {
 
   /**
    * Get or create a conversation between current user and another user
+   * Only allows if users are friends
    */
   async getOrCreateConversation(otherUserId: string): Promise<IConversation> {
     const currentUser = this.authService.user();
     if (!currentUser) {
       throw new Error('User not authenticated');
+    }
+
+    // Check if users are friends
+    const relationStatus = this.relationService.getRelationStatus(otherUserId);
+    if (relationStatus.type !== 'friend') {
+      throw new Error('You can only chat with friends. Send a friend request first.');
     }
 
     try {
@@ -114,7 +154,6 @@ export class ConversationService {
         avatar: record['avatar'],
       }));
     } catch (error: any) {
-      console.error('Failed to search users:', error);
       return [];
     }
   }
@@ -156,7 +195,7 @@ export class ConversationService {
         this.unsubscribe = unsub;
       })
       .catch((error) => {
-        console.error('Failed to subscribe to conversations:', error);
+        // Silently handle subscription errors
       });
   }
 
@@ -172,6 +211,7 @@ export class ConversationService {
 
   /**
    * Handle conversation create/update from realtime
+   * Filters out conversations with blocked users or non-friends
    */
   private async handleConversationCreateOrUpdate(record: any): Promise<void> {
     try {
@@ -182,6 +222,42 @@ export class ConversationService {
           expand: 'participants',
         });
 
+      // Check if conversation should be shown
+      const currentUser = this.authService.user();
+      const otherParticipant = this.getOtherParticipant(fullRecord);
+
+      if (!currentUser || !otherParticipant) {
+        this.conversationsSignal.update((prev) => prev.filter((c) => c.id !== fullRecord.id));
+        return;
+      }
+
+      // Check block status (from in-memory signals)
+      const isBlockedByMe = this.relationService.isBlockedByMe(otherParticipant.id);
+      const hasBlockedMe = this.relationService.isBlockedBy(otherParticipant.id);
+
+      if (isBlockedByMe || hasBlockedMe) {
+        this.conversationsSignal.update((prev) => prev.filter((c) => c.id !== fullRecord.id));
+        return;
+      }
+
+      // Check friendship from database (ensures consistency across users)
+      try {
+        const friendshipRelations = await this.pb.collection('relations').getList(1, 1, {
+          filter: `(from_user = "${currentUser.id}" && to_user = "${otherParticipant.id}" && type = "friend") || (from_user = "${otherParticipant.id}" && to_user = "${currentUser.id}" && type = "friend")`,
+        });
+
+        if (friendshipRelations.items.length === 0) {
+          // Not friends, remove conversation
+          this.conversationsSignal.update((prev) => prev.filter((c) => c.id !== fullRecord.id));
+          return;
+        }
+      } catch (error) {
+        // If query fails, remove conversation to be safe
+        this.conversationsSignal.update((prev) => prev.filter((c) => c.id !== fullRecord.id));
+        return;
+      }
+
+      // Update conversation in list
       this.conversationsSignal.update((prev) => {
         const exists = prev.some((c) => c.id === fullRecord.id);
         if (exists) {
@@ -191,7 +267,7 @@ export class ConversationService {
         }
       });
     } catch (error) {
-      console.error('Failed to handle conversation update:', error);
+      // Silently handle conversation update errors
     }
   }
 
@@ -214,7 +290,6 @@ export class ConversationService {
         });
       return conversation;
     } catch (error) {
-      console.error('Failed to fetch conversation:', error);
       return null;
     }
   }

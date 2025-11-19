@@ -28,29 +28,73 @@
     class="mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-64 overflow-y-auto"
   >
     @for (user of searchResults(); track user.id) {
-    <button
-      (click)="selectUser(user)"
-      class="w-full px-3 md:px-4 py-2 md:py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 flex items-center gap-2 md:gap-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors touch-manipulation"
+    <div
+      class="px-3 md:px-4 py-2 md:py-3 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 flex items-center gap-2 md:gap-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors"
     >
-      <hlm-avatar class="shrink-0">
-        @if (getAvatarUrl(user)) {
-        <img [src]="getAvatarUrl(user)" hlmAvatarImage [alt]="user.username || user.email" />
-        }
-        <span class="text-white bg-destructive" hlmAvatarFallback>
-          {{ (user.username || user.email).charAt(0).toUpperCase() }}
-        </span>
-      </hlm-avatar>
-      <div class="min-w-0 flex-1">
-        <div class="font-medium text-sm md:text-base text-gray-900 dark:text-gray-100 truncate">
-          {{ user.username || user.email }}
+      @if (getFriendStatus(user.id).type === 'friend') {
+      <button
+        (click)="selectUser(user)"
+        class="flex-1 text-left min-w-0 cursor-pointer"
+      >
+        <div class="flex items-center gap-2 md:gap-3">
+          <hlm-avatar class="shrink-0">
+            @if (getAvatarUrl(user)) {
+            <img [src]="getAvatarUrl(user)" hlmAvatarImage [alt]="user.username || user.email" />
+            }
+            <span class="text-white bg-destructive" hlmAvatarFallback>
+              {{ (user.username || user.email).charAt(0).toUpperCase() }}
+            </span>
+          </hlm-avatar>
+          <div class="min-w-0 flex-1">
+            <div class="font-medium text-sm md:text-base text-gray-900 dark:text-gray-100 truncate">
+              {{ user.username || user.email }}
+            </div>
+            @if (user.username && user.email) {
+            <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">
+              {{ user.email }}
+            </div>
+            }
+          </div>
         </div>
-        @if (user.username && user.email) {
-        <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">
-          {{ user.email }}
+      </button>
+      } @else {
+      <div
+        class="flex-1 text-left min-w-0"
+        [attr.title]="'Add as friend to start chatting'"
+      >
+        <div class="flex items-center gap-2 md:gap-3">
+          <hlm-avatar class="shrink-0">
+            @if (getAvatarUrl(user)) {
+            <img [src]="getAvatarUrl(user)" hlmAvatarImage [alt]="user.username || user.email" />
+            }
+            <span class="text-white bg-destructive" hlmAvatarFallback>
+              {{ (user.username || user.email).charAt(0).toUpperCase() }}
+            </span>
+          </hlm-avatar>
+          <div class="min-w-0 flex-1">
+            <div class="font-medium text-sm md:text-base text-gray-900 dark:text-gray-100 truncate flex items-center gap-2">
+              {{ user.username || user.email }}
+              <ng-icon 
+                name="lucideLock" 
+                size="14" 
+                class="text-gray-400 shrink-0"
+                [attr.title]="'Friends only - Send a friend request first'"
+              />
+            </div>
+            @if (user.username && user.email) {
+            <div class="text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">
+              {{ user.email }}
+            </div>
+            }
+          </div>
         </div>
-        }
       </div>
-    </button>
+      }
+      
+      <div class="shrink-0">
+        <app-relation-action-button [userId]="user.id" size="sm" />
+      </div>
+    </div>
     }
   </div>
   } @if (isSearching()) {
