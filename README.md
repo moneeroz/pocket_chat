@@ -30,7 +30,7 @@ A modern real-time chat application built with Angular 20+ and PocketBase, featu
 
 ## Best Practices Implemented
 
-- ✅ **OnPush Change Detection**: All components use `ChangeDetectionStrategy.OnPush` for optimal performance
+- ✅ **OnPush Change Detection**: Some components use `ChangeDetectionStrategy.OnPush` for optimal performance
 - ✅ **Proper Cleanup**: `OnDestroy` implementation with timer/subscription cleanup
 - ✅ **Signal-based State**: Reactive state management with readonly and protected modifiers
 - ✅ **Type Safety**: No `any` types, strict TypeScript configuration
@@ -48,7 +48,7 @@ A modern real-time chat application built with Angular 20+ and PocketBase, featu
 - **Date Formatting**: date-fns with custom WhatsApp-style utilities
 - **Type Safety**: Strict TypeScript with no `any` types
 - **State Management**: Signal-based reactive patterns
-- **Performance**: OnPush change detection strategy across all components
+- **Performance**: OnPush change detection strategy across components
 - **Memory Management**: Proper cleanup with OnDestroy and DestroyRef patterns
 
 ## Development server
